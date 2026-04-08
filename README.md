@@ -1,0 +1,1 @@
+# lab1cretional_patterns
