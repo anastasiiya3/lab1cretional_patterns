@@ -1,0 +1,364 @@
+import java.util.ArrayList;
+import java.util.List;
+
+// ==================== 1. Singleton ====================
+class DatabaseConnection {
+    private static DatabaseConnection instance;
+    
+    private DatabaseConnection() {
+        System.out.println("Створено підключення до БД");
+    }
+    
+    public static DatabaseConnection getInstance() {
+        if (instance == null) {
+            instance = new DatabaseConnection();
+        }
+        return instance;
+    }
+    
+    public void query(String sql) {
+        System.out.println("Виконання запиту: " + sql);
+    }
+}
+
+// ==================== 2. Factory Method ====================
+interface Transport {
+    void deliver();
+}
+
+class Car implements Transport {
+    @Override
+    public void deliver() {
+        System.out.println("Доставка автомобілем по дорозі");
+    }
+}
+
+class Bike implements Transport {
+    @Override
+    public void deliver() {
+        System.out.println("Доставка велосипедом по стежках");
+    }
+}
+
+abstract class TransportFactory {
+    public abstract Transport createTransport();
+}
+
+class CarFactory extends TransportFactory {
+    @Override
+    public Transport createTransport() {
+        return new Car();
+    }
+}
+
+class BikeFactory extends TransportFactory {
+    @Override
+    public Transport createTransport() {
+        return new Bike();
+    }
+}
+
+// ==================== 3. Abstract Factory ====================
+interface Button {
+    void render();
+}
+
+interface Checkbox {
+    void check();
+}
+
+class WindowsButton implements Button {
+    @Override
+    public void render() {
+        System.out.println("Малюємо кнопку в стилі Windows");
+    }
+}
+
+class WindowsCheckbox implements Checkbox {
+    @Override
+    public void check() {
+        System.out.println("Прапорець в стилі Windows");
+    }
+}
+
+class MacButton implements Button {
+    @Override
+    public void render() {
+        System.out.println("Малюємо кнопку в стилі Mac");
+    }
+}
+
+class MacCheckbox implements Checkbox {
+    @Override
+    public void check() {
+        System.out.println("Прапорець в стилі Mac");
+    }
+}
+
+interface UIFactory {
+    Button createButton();
+    Checkbox createCheckbox();
+}
+
+class WindowsFactory implements UIFactory {
+    @Override
+    public Button createButton() {
+        return new WindowsButton();
+    }
+    
+    @Override
+    public Checkbox createCheckbox() {
+        return new WindowsCheckbox();
+    }
+}
+
+class MacFactory implements UIFactory {
+    @Override
+    public Button createButton() {
+        return new MacButton();
+    }
+    
+    @Override
+    public Checkbox createCheckbox() {
+        return new MacCheckbox();
+    }
+}
+
+// ==================== 4. Builder ====================
+class Pizza {
+    private String dough;
+    private String sauce;
+    private String topping;
+    private boolean cheese;
+    
+    public void setDough(String dough) { 
+        this.dough = dough; 
+    }
+    
+    public void setSauce(String sauce) { 
+        this.sauce = sauce; 
+    }
+    
+    public void setTopping(String topping) { 
+        this.topping = topping; 
+    }
+    
+    public void setCheese(boolean cheese) { 
+        this.cheese = cheese; 
+    }
+    
+    @Override
+    public String toString() {
+        return "Pizza{" +
+                "dough='" + dough + '\'' +
+                ", sauce='" + sauce + '\'' +
+                ", topping='" + topping + '\'' +
+                ", cheese=" + cheese +
+                '}';
+    }
+}
+
+class PizzaBuilder {
+    private Pizza pizza;
+    
+    public PizzaBuilder() {
+        this.pizza = new Pizza();
+    }
+    
+    public PizzaBuilder setDough(String dough) {
+        pizza.setDough(dough);
+        return this;
+    }
+    
+    public PizzaBuilder setSauce(String sauce) {
+        pizza.setSauce(sauce);
+        return this;
+    }
+    
+    public PizzaBuilder setTopping(String topping) {
+        pizza.setTopping(topping);
+        return this;
+    }
+    
+    public PizzaBuilder setCheese(boolean cheese) {
+        pizza.setCheese(cheese);
+        return this;
+    }
+    
+    public Pizza build() {
+        return pizza;
+    }
+}
+
+// ==================== 5. Prototype ====================
+abstract class Shape implements Cloneable {
+    protected String type;
+    
+    public abstract void draw();
+    
+    public String getType() {
+        return type;
+    }
+    
+    @Override
+    public Shape clone() {
+        try {
+            return (Shape) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
+}
+
+class Circle extends Shape {
+    public Circle() {
+        type = "Circle";
+    }
+    
+    @Override
+    public void draw() {
+        System.out.println("Малюємо коло");
+    }
+}
+
+// ==================== 6. Object Pool ====================
+class DBConnection {
+    private boolean inUse;
+    
+    public DBConnection() {
+        System.out.println("Створено нове з'єднання");
+    }
+    
+    public void setInUse(boolean inUse) {
+        this.inUse = inUse;
+    }
+    
+    public boolean isInUse() {
+        return inUse;
+    }
+    
+    public void executeQuery(String query) {
+        System.out.println("Виконуємо: " + query);
+    }
+}
+
+class ConnectionPool {
+    private static final int POOL_SIZE = 2;
+    private List<DBConnection> connections = new ArrayList<>();
+    
+    public ConnectionPool() {
+        for (int i = 0; i < POOL_SIZE; i++) {
+            connections.add(new DBConnection());
+        }
+    }
+    
+    public DBConnection getConnection() {
+        for (DBConnection conn : connections) {
+            if (!conn.isInUse()) {
+                conn.setInUse(true);
+                return conn;
+            }
+        }
+        return null;
+    }
+    
+    public void releaseConnection(DBConnection conn) {
+        conn.setInUse(false);
+        System.out.println("З'єднання повернуто в пул");
+    }
+}
+
+// ==================== Головний клас для демонстрації ====================
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("==================== 1. Singleton ====================");
+        DatabaseConnection db1 = DatabaseConnection.getInstance();
+        db1.query("SELECT * FROM users");
+        DatabaseConnection db2 = DatabaseConnection.getInstance();
+        System.out.println("Один об'єкт? " + (db1 == db2));
+        System.out.println();
+        
+        System.out.println("==================== 2. Factory Method ====================");
+        TransportFactory factory = new CarFactory();
+        Transport transport = factory.createTransport();
+        transport.deliver();
+        
+        factory = new BikeFactory();
+        transport = factory.createTransport();
+        transport.deliver();
+        System.out.println();
+        
+        System.out.println("==================== 3. Abstract Factory ====================");
+        System.out.println("--- Windows стиль ---");
+        UIFactory uiFactory = new WindowsFactory();
+        Button button = uiFactory.createButton();
+        button.render();
+        Checkbox checkbox = uiFactory.createCheckbox();
+        checkbox.check();
+        
+        System.out.println("--- Mac стиль ---");
+        uiFactory = new MacFactory();
+        button = uiFactory.createButton();
+        button.render();
+        checkbox = uiFactory.createCheckbox();
+        checkbox.check();
+        System.out.println();
+        
+        System.out.println("==================== 4. Builder ====================");
+        Pizza pizza = new PizzaBuilder()
+                .setDough("тонке тісто")
+                .setSauce("томатний соус")
+                .setTopping("пепероні")
+                .setCheese(true)
+                .build();
+        System.out.println("Створена піца: " + pizza);
+        
+        Pizza veggiePizza = new PizzaBuilder()
+                .setDough("товсте тісто")
+                .setSauce("вершковий соус")
+                .setTopping("гриби, перець, оливки")
+                .setCheese(true)
+                .build();
+        System.out.println("Створена вегетаріанська піца: " + veggiePizza);
+        System.out.println();
+        
+        System.out.println("==================== 5. Prototype ====================");
+        Circle originalCircle = new Circle();
+        System.out.print("Оригінал: ");
+        originalCircle.draw();
+        System.out.println("Тип оригіналу: " + originalCircle.getType());
+        
+        Circle clonedCircle = (Circle) originalCircle.clone();
+        System.out.print("Клон: ");
+        clonedCircle.draw();
+        System.out.println("Тип клону: " + clonedCircle.getType());
+        System.out.println("Оригінал і клон - різні об'єкти? " + (originalCircle != clonedCircle));
+        System.out.println();
+        
+        System.out.println("==================== 6. Object Pool ====================");
+        ConnectionPool pool = new ConnectionPool();
+        
+        System.out.println("Отримуємо з'єднання 1:");
+        DBConnection conn1 = pool.getConnection();
+        conn1.executeQuery("SELECT * FROM customers");
+        
+        System.out.println("Отримуємо з'єднання 2:");
+        DBConnection conn2 = pool.getConnection();
+        conn2.executeQuery("SELECT * FROM orders");
+        
+        System.out.println("Отримуємо з'єднання 3 (має бути null):");
+        DBConnection conn3 = pool.getConnection();
+        if (conn3 == null) {
+            System.out.println("Немає вільних з'єднань в пулі!");
+        }
+        
+        System.out.println("Повертаємо з'єднання 1 в пул:");
+        pool.releaseConnection(conn1);
+        
+        System.out.println("Отримуємо з'єднання 3 (тепер доступне):");
+        DBConnection conn4 = pool.getConnection();
+        if (conn4 != null) {
+            conn4.executeQuery("SELECT * FROM products");
+        }
+    }
+}
